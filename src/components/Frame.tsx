@@ -22,17 +22,92 @@ import { createStore } from "mipd";
 import { Label } from "~/components/ui/label";
 import { PROJECT_TITLE } from "~/lib/constants";
 
-function ExampleCard() {
+const QUESTIONS = [
+  {
+    question: "What can you build with Maschine right now?",
+    options: [
+      { text: "Frames with dynamic quizzes", correct: true },
+      { text: "Database-backed applications", correct: false },
+      { text: "New smart contracts", correct: false }
+    ]
+  },
+  {
+    question: "What's a current limitation?",
+    options: [
+      { text: "Interactive frames without backend", correct: false },
+      { text: "Complex state management", correct: true },
+      { text: "Basic UI components" , correct: false }
+    ]
+  },
+  {
+    question: "Which is possible today?",
+    options: [
+      { text: "User authentication", correct: true },
+      { text: "On-chain transactions", correct: false },
+      { text: "Real-time chat", correct: false }
+    ]
+  }
+];
+
+function QuizCard({ questions }: { questions: typeof QUESTIONS }) {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+
+  const handleAnswer = (optionIndex: number, isCorrect: boolean) => {
+    setSelectedAnswer(optionIndex);
+    if (isCorrect) setScore(s => s + 1);
+    
+    setTimeout(() => {
+      setSelectedAnswer(null);
+      setCurrentQuestionIndex(i => Math.min(i + 1, QUESTIONS.length - 1));
+    }, 1500);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Welcome to the Frame Template</CardTitle>
+        <CardTitle>Maschine Capabilities Quiz</CardTitle>
         <CardDescription>
-          This is an example card that you can customize or remove
+          {currentQuestionIndex < QUESTIONS.length ? 
+            `Question ${currentQuestionIndex + 1} of ${QUESTIONS.length}` :
+            `Final Score: ${score}/${QUESTIONS.length}`}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Label>Place content in a Card here.</Label>
+      <CardContent className="flex flex-col gap-4">
+        {currentQuestionIndex < QUESTIONS.length ? (
+          <>
+            <Label className="text-lg">
+              {QUESTIONS[currentQuestionIndex].question}
+            </Label>
+            <div className="flex flex-col gap-2">
+              {QUESTIONS[currentQuestionIndex].options.map((option, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleAnswer(i, option.correct)}
+                  className={`p-2 rounded text-left ${
+                    selectedAnswer === i 
+                      ? option.correct 
+                        ? "bg-green-200" 
+                        : "bg-red-200"
+                      : "hover:bg-gray-100"
+                  }`}
+                  disabled={selectedAnswer !== null}
+                >
+                  {option.text}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            <Label className="text-lg block mb-4">Quiz Complete!</Label>
+            <div className="text-sm text-gray-600">
+              Maschine can handle interactive UI components and basic state,
+              but complex applications still need traditional backends.
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -140,7 +215,7 @@ export default function Frame() {
         <h1 className="text-2xl font-bold text-center mb-4 text-gray-700 dark:text-gray-300">
           {PROJECT_TITLE}
         </h1>
-        <ExampleCard />
+        <QuizCard questions={QUESTIONS} />
       </div>
     </div>
   );
